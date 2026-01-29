@@ -19,7 +19,7 @@ class PackViewModel {
         errorMessage = nil
 
         do {
-            packs = try await APIClient.shared.request("/api/v1/packs")
+            packs = try await APIClient.shared.request("/packs")
             isLoading = false
         } catch {
             errorMessage = error.localizedDescription
@@ -32,7 +32,7 @@ class PackViewModel {
         errorMessage = nil
 
         do {
-            currentPack = try await APIClient.shared.request("/api/v1/packs/\(id)")
+            currentPack = try await APIClient.shared.request("/packs/\(id)")
             isLoading = false
         } catch {
             errorMessage = error.localizedDescription
@@ -52,7 +52,7 @@ class PackViewModel {
         do {
             let request = CreatePackRequest(name: newPackName)
             let pack: Pack = try await APIClient.shared.request(
-                "/api/v1/packs",
+                "/packs",
                 method: "POST",
                 body: request
             )
@@ -81,7 +81,7 @@ class PackViewModel {
         do {
             let request = InviteMemberRequest(email: inviteEmail)
             let _: PackInvitation = try await APIClient.shared.request(
-                "/api/v1/packs/\(packId)/invitations",
+                "/packs/\(packId)/invitations",
                 method: "POST",
                 body: request
             )
@@ -110,7 +110,7 @@ class PackViewModel {
         do {
             let request = AcceptInvitationRequest(token: invitationToken)
             let _: Pack = try await APIClient.shared.request(
-                "/api/v1/packs/invitations/accept",
+                "/packs/invitations/accept",
                 method: "POST",
                 body: request
             )

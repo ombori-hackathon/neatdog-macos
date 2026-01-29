@@ -9,11 +9,7 @@ class AuthService {
     private(set) var isAuthenticated = false
     private(set) var currentUser: User?
 
-    private init() {
-        Task {
-            await loadStoredAuth()
-        }
-    }
+    private init() {}
 
     func login(email: String, password: String) async throws {
         let request = LoginRequest(email: email, password: password)
@@ -23,9 +19,12 @@ class AuthService {
             body: request
         )
 
-        // Store tokens
-        try KeychainService.save(key: "access_token", value: response.accessToken)
-        try KeychainService.save(key: "refresh_token", value: response.refreshToken)
+        // Store token in APIClient
+        let logFile = "/tmp/neatdog-debug.log"
+        let existing = (try? String(contentsOfFile: logFile)) ?? ""
+        let msg = existing + "\n[AuthService.login] Setting token: \(response.accessToken.prefix(30))..."
+        try? msg.write(toFile: logFile, atomically: false, encoding: .utf8)
+        await APIClient.shared.setToken(response.accessToken)
 
         // Update state
         self.currentUser = response.user
@@ -40,80 +39,20 @@ class AuthService {
             body: request
         )
 
-        // Store tokens
-        try KeychainService.save(key: "access_token", value: response.accessToken)
-        try KeychainService.save(key: "refresh_token", value: response.refreshToken)
+        // Store token in APIClient
+        await APIClient.shared.setToken(response.accessToken)
 
         // Update state
         self.currentUser = response.user
         self.isAuthenticated = true
     }
 
-    func logout() {
-        // Clear tokens
-        KeychainService.delete(key: "access_token")
-        KeychainService.delete(key: "refresh_token")
+    func logout() async {
+        // Clear token
+        await APIClient.shared.setToken(nil)
 
         // Update state
         currentUser = nil
         isAuthenticated = false
     }
-
-    func refreshToken() async throws {
-        guard let refreshToken = KeychainService.load(key: "refresh_token") else {
-            throw AuthError.noRefreshToken
-        }
-
-        let request = RefreshTokenRequest(refreshToken: refreshToken)
-        let response: AuthResponse = try await APIClient.shared.request(
-            "/auth/refresh",
-            method: "POST",
-            body: request
-        )
-
-        // Update tokens
-        try KeychainService.save(key: "access_token", value: response.accessToken)
-        try KeychainService.save(key: "refresh_token", value: response.refreshToken)
-
-        // Update state
-        self.currentUser = response.user
-        self.isAuthenticated = true
-    }
-
-    func loadStoredAuth() async {
-        // Check if we have a stored access token
-        guard KeychainService.load(key: "access_token") != nil else {
-            return
-        }
-
-        // Try to get current user with stored token
-        do {
-            let user: User = try await APIClient.shared.request("/auth/me")
-            self.currentUser = user
-            self.isAuthenticated = true
-        } catch {
-            // Token might be expired, try to refresh
-            do {
-                try await refreshToken()
-            } catch {
-                // Refresh failed, clear everything
-                logout()
-            }
-        }
-    }
-}
-
-enum AuthError: Error, LocalizedError {
-    case noRefreshToken
-
-    var errorDescription: String? {
-        switch self {
-        case .noRefreshToken:
-            return "No refresh token available"
-        }
-    }
-}
-
-private struct RefreshTokenRequest: Encodable {
-    let refreshToken: String
 }

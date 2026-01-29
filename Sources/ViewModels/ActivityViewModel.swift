@@ -40,7 +40,7 @@ class ActivityViewModel {
             queryParams.append("limit=100")
 
             let queryString = queryParams.isEmpty ? "" : "?\(queryParams.joined(separator: "&"))"
-            let endpoint = "/api/v1/packs/\(packId)/activities\(queryString)"
+            let endpoint = "/packs/\(packId)/activities\(queryString)"
 
             let response: [ActivityLogWithDetails] = try await APIClient.shared.request(endpoint)
             activities = response
@@ -54,7 +54,7 @@ class ActivityViewModel {
     // Load activity types for the pack
     func loadActivityTypes(packId: Int) async {
         do {
-            let response: [ActivityType] = try await APIClient.shared.request("/api/v1/packs/\(packId)/activity-types")
+            let response: [ActivityType] = try await APIClient.shared.request("/packs/\(packId)/activity-types")
             activityTypes = response
         } catch {
             errorMessage = error.localizedDescription
@@ -79,7 +79,7 @@ class ActivityViewModel {
             )
 
             let _: ActivityLogWithDetails = try await APIClient.shared.request(
-                "/api/v1/packs/\(packId)/activities",
+                "/packs/\(packId)/activities",
                 method: "POST",
                 body: request
             )
