@@ -6,6 +6,7 @@ struct PackDetailView: View {
 
     @State private var viewModel = PackViewModel()
     @State private var dogViewModel = DogViewModel()
+    @State private var activityViewModel = ActivityViewModel()
     @State private var showInviteMember = false
     @State private var selectedTab = "members"
 
@@ -65,7 +66,7 @@ struct PackDetailView: View {
                 } else if selectedTab == "dog" {
                     dogView
                 } else {
-                    ActivityDashboardView(packId: packId)
+                    ActivityDashboardView(packId: packId, viewModel: activityViewModel)
                 }
             } else {
                 ContentUnavailableView(
@@ -82,6 +83,8 @@ struct PackDetailView: View {
             await viewModel.loadPack(id: packId)
             await dogViewModel.loadDog(packId: packId)
             await dogViewModel.loadActivityTypes(packId: packId)
+            await activityViewModel.loadActivities(packId: packId)
+            await activityViewModel.loadActivityTypes(packId: packId)
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil || dogViewModel.errorMessage != nil)) {
             Button("OK") {
@@ -161,7 +164,7 @@ struct PackDetailView: View {
             ProgressView("Loading dog...")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if dogViewModel.hasDog {
-            DogProfileView(packId: packId, viewModel: dogViewModel)
+            DogProfileView(packId: packId, viewModel: dogViewModel, activityViewModel: activityViewModel)
         } else {
             DogSetupView(packId: packId, viewModel: dogViewModel)
         }

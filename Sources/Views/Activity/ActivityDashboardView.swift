@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ActivityDashboardView: View {
     let packId: Int
-    @State private var viewModel = ActivityViewModel()
+    @Bindable var viewModel: ActivityViewModel
     @State private var showLogActivity = false
 
     // Common activities to show as quick log buttons
@@ -159,6 +159,6 @@ struct ActivityDashboardView: View {
 
 #Preview {
     NavigationStack {
-        ActivityDashboardView(packId: 1)
+        ActivityDashboardView(packId: 1, viewModel: ActivityViewModel())
     }
 }

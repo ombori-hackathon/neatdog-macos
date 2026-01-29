@@ -3,6 +3,7 @@ import SwiftUI
 struct DogProfileView: View {
     let packId: Int
     @Bindable var viewModel: DogViewModel
+    @Bindable var activityViewModel: ActivityViewModel
     @State private var showEditSheet = false
 
     private func calculateAge(from birthDate: Date?) -> String {
@@ -67,16 +68,16 @@ struct DogProfileView: View {
                 Divider()
                     .padding(.vertical, 8)
 
-                // Quick stats section (placeholder)
+                // Quick stats section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Quick Stats")
                         .font(.headline)
                         .foregroundStyle(.secondary)
 
                     HStack(spacing: 20) {
-                        StatCard(title: "Activities", value: "0")
-                        StatCard(title: "This Week", value: "0")
-                        StatCard(title: "Streak", value: "0")
+                        StatCard(title: "Activities", value: "\(activityViewModel.totalActivities)")
+                        StatCard(title: "This Week", value: "\(activityViewModel.activitiesThisWeek)")
+                        StatCard(title: "Streak", value: "\(activityViewModel.currentStreak)")
                     }
                 }
                 .padding()
@@ -103,6 +104,9 @@ struct DogProfileView: View {
         .sheet(isPresented: $showEditSheet) {
             EditDogView(packId: packId, viewModel: viewModel, isPresented: $showEditSheet)
         }
+        .task {
+            await activityViewModel.loadActivities(packId: packId)
+        }
     }
 }
 
@@ -128,5 +132,5 @@ struct StatCard: View {
 }
 
 #Preview {
-    DogProfileView(packId: 1, viewModel: DogViewModel())
+    DogProfileView(packId: 1, viewModel: DogViewModel(), activityViewModel: ActivityViewModel())
 }

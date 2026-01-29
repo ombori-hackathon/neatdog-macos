@@ -28,9 +28,9 @@ struct JoinPackView: View {
                 Image(systemName: "info.circle.fill")
                     .foregroundStyle(.blue)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Have an invitation?")
+                    Text("Have an invitation code?")
                         .font(.headline)
-                    Text("Paste the invitation token from your email below")
+                    Text("Paste the code shared by a pack member below")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -42,14 +42,14 @@ struct JoinPackView: View {
 
             // Form
             VStack(alignment: .leading, spacing: 8) {
-                Text("Invitation Token")
+                Text("Invitation Code")
                     .font(.headline)
 
-                TextField("Paste token here", text: $viewModel.invitationToken)
+                TextField("Paste code here", text: $viewModel.invitationToken)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
 
-                Text("The token is a long string of characters from your invitation email")
+                Text("Ask a pack member to invite you and share their invitation code")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -26,6 +26,7 @@ struct PackMember: Codable, Identifiable {
 struct PackInvitation: Codable, Identifiable {
     let id: Int
     let email: String
+    let token: String
     let expiresAt: Date
     let createdAt: Date
 }

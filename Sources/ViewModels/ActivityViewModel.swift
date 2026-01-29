@@ -105,4 +105,36 @@ class ActivityViewModel {
         loggedAt = Date()
         await logActivity(packId: packId)
     }
+
+    // MARK: - Stats
+
+    var totalActivities: Int {
+        activities.count
+    }
+
+    var activitiesThisWeek: Int {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())) ?? Date()
+        return activities.filter { $0.loggedAt >= startOfWeek }.count
+    }
+
+    var currentStreak: Int {
+        guard !activities.isEmpty else { return 0 }
+
+        let calendar = Calendar.current
+        var streak = 0
+        var currentDate = calendar.startOfDay(for: Date())
+
+        // Get unique days with activities
+        let activityDays = Set(activities.map { calendar.startOfDay(for: $0.loggedAt) })
+
+        // Count consecutive days backwards from today
+        while activityDays.contains(currentDate) {
+            streak += 1
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
+            currentDate = previousDay
+        }
+
+        return streak
+    }
 }

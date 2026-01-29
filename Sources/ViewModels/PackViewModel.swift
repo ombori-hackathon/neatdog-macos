@@ -13,6 +13,7 @@ class PackViewModel {
     var newPackName = ""
     var inviteEmail = ""
     var invitationToken = ""
+    var lastCreatedInvitation: PackInvitation?
 
     func loadPacks() async {
         isLoading = true
@@ -80,18 +81,15 @@ class PackViewModel {
 
         do {
             let request = InviteMemberRequest(email: inviteEmail)
-            let _: PackInvitation = try await APIClient.shared.request(
+            let invitation: PackInvitation = try await APIClient.shared.request(
                 "/packs/\(packId)/invitations",
                 method: "POST",
                 body: request
             )
 
-            // Clear form
-            inviteEmail = ""
+            // Store the invitation to show the token
+            lastCreatedInvitation = invitation
             isLoading = false
-
-            // Show success message
-            errorMessage = "Invitation sent successfully"
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false

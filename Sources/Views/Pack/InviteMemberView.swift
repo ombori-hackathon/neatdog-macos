@@ -5,8 +5,6 @@ struct InviteMemberView: View {
     let packId: Int
     @Bindable var viewModel: PackViewModel
 
-    @State private var showSuccess = false
-
     var body: some View {
         VStack(spacing: 20) {
             // Header
@@ -26,22 +24,53 @@ struct InviteMemberView: View {
 
             Divider()
 
-            if showSuccess {
-                // Success state
+            if let invitation = viewModel.lastCreatedInvitation {
+                // Success state - show invitation code
                 VStack(spacing: 16) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 64))
+                        .font(.system(size: 48))
                         .foregroundStyle(.green)
 
-                    Text("Invitation Sent!")
+                    Text("Invitation Created!")
                         .font(.title2.bold())
 
-                    Text("An invitation has been sent to \(viewModel.inviteEmail)")
+                    Text("Share this code with \(invitation.email)")
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
 
+                    // Invitation code display
+                    VStack(spacing: 8) {
+                        Text("Invitation Code")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        HStack {
+                            Text(invitation.token)
+                                .font(.system(.body, design: .monospaced))
+                                .textSelection(.enabled)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+
+                            Button {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(invitation.token, forType: .string)
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Copy to clipboard")
+                        }
+                        .padding(12)
+                        .background(.background.secondary)
+                        .cornerRadius(8)
+
+                        Text("Expires: \(invitation.expiresAt.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+
                     Button("Done") {
-                        showSuccess = false
+                        viewModel.lastCreatedInvitation = nil
                         viewModel.inviteEmail = ""
                         dismiss()
                     }
@@ -67,7 +96,7 @@ struct InviteMemberView: View {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(.blue)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("They will receive an invitation link via email")
+                        Text("You'll get a code to share with them")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -77,7 +106,7 @@ struct InviteMemberView: View {
                 .background(.blue.opacity(0.1))
                 .cornerRadius(8)
 
-                if let error = viewModel.errorMessage, error != "Invitation sent successfully" {
+                if let error = viewModel.errorMessage {
                     Text(error)
                         .foregroundStyle(.red)
                         .font(.caption)
@@ -94,12 +123,9 @@ struct InviteMemberView: View {
 
                     Spacer()
 
-                    Button("Send Invitation") {
+                    Button("Create Invitation") {
                         Task {
                             await viewModel.inviteMember(packId: packId)
-                            if viewModel.errorMessage == "Invitation sent successfully" {
-                                showSuccess = true
-                            }
                         }
                     }
                     .buttonStyle(.borderedProminent)
