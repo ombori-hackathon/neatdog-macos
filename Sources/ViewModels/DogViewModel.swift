@@ -25,7 +25,7 @@ class DogViewModel {
         errorMessage = nil
 
         do {
-            dog = try await APIClient.shared.request("/api/v1/packs/\(packId)/dog")
+            dog = try await APIClient.shared.request("/packs/\(packId)/dog")
             hasDog = true
 
             // Populate form with existing data
@@ -69,7 +69,7 @@ class DogViewModel {
             )
 
             dog = try await APIClient.shared.request(
-                "/api/v1/packs/\(packId)/dog",
+                "/packs/\(packId)/dog",
                 method: "POST",
                 body: request
             )
@@ -100,7 +100,7 @@ class DogViewModel {
             )
 
             dog = try await APIClient.shared.request(
-                "/api/v1/packs/\(packId)/dog",
+                "/packs/\(packId)/dog",
                 method: "PATCH",
                 body: request
             )
@@ -117,7 +117,7 @@ class DogViewModel {
         errorMessage = nil
 
         do {
-            activityTypes = try await APIClient.shared.request("/api/v1/packs/\(packId)/activity-types")
+            activityTypes = try await APIClient.shared.request("/packs/\(packId)/activity-types")
             isLoading = false
         } catch {
             errorMessage = error.localizedDescription
@@ -142,7 +142,7 @@ class DogViewModel {
             )
 
             let newType: ActivityType = try await APIClient.shared.request(
-                "/api/v1/packs/\(packId)/activity-types",
+                "/packs/\(packId)/activity-types",
                 method: "POST",
                 body: request
             )

@@ -3,7 +3,12 @@ import Foundation
 actor APIClient {
     static let shared = APIClient()
 
-    let baseURL = "http://localhost:8000"
+    let baseURL = "http://localhost:8000/api/v1"
+    private var token: String?
+
+    func setToken(_ token: String?) {
+        self.token = token
+    }
 
     enum APIError: Error, LocalizedError {
         case invalidURL
@@ -53,6 +58,7 @@ actor APIClient {
         if let body = body {
             let encoder = JSONEncoder()
             encoder.keyEncodingStrategy = .convertToSnakeCase
+            encoder.dateEncodingStrategy = .iso8601
             request.httpBody = try encoder.encode(body)
         }
 
@@ -77,7 +83,41 @@ actor APIClient {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+
+                // Try ISO8601 with fractional seconds (API format: 2026-01-29T11:05:05.255266)
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+
+                // Try without fractional seconds
+                formatter.formatOptions = [.withInternetDateTime]
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+
+                // Try with custom formatter for dates without timezone
+                let customFormatter = DateFormatter()
+                customFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+                customFormatter.timeZone = TimeZone(identifier: "UTC")
+                if let date = customFormatter.date(from: dateString) {
+                    return date
+                }
+
+                customFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                if let date = customFormatter.date(from: dateString) {
+                    return date
+                }
+
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Cannot decode date: \(dateString)"
+                )
+            }
             return try decoder.decode(T.self, from: data)
         } catch {
             throw APIError.decodingError(error)
@@ -85,8 +125,14 @@ actor APIClient {
     }
 
     private func addAuthHeader(to request: inout URLRequest) {
-        if let token = KeychainService.load(key: "access_token") {
+        let logFile = "/tmp/neatdog-debug.log"
+        let existing = (try? String(contentsOfFile: logFile)) ?? ""
+        let msg = existing + "\n[APIClient] addAuthHeader - token is: \(self.token != nil ? "SET" : "nil")"
+        try? msg.write(toFile: logFile, atomically: false, encoding: .utf8)
+        if let token = self.token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            let msg2 = msg + "\n[APIClient] Added Authorization header with token prefix: \(token.prefix(20))"
+            try? msg2.write(toFile: logFile, atomically: false, encoding: .utf8)
         }
     }
 }

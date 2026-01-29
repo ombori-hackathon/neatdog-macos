@@ -22,7 +22,9 @@ struct PackListView: View {
                             .foregroundStyle(.secondary)
 
                         Button("Logout") {
-                            authService.logout()
+                            Task {
+                                await authService.logout()
+                            }
                         }
                         .buttonStyle(.borderless)
                         .foregroundStyle(.red)
