@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(AuthService.self) private var authService
     @State private var items: [Item] = []
     @State private var isLoading = false
     @State private var apiStatus = "Checking..."
@@ -15,6 +16,24 @@ struct ContentView: View {
                 Text("neatdog")
                     .font(.title.bold())
                 Spacer()
+
+                // User info
+                if let user = authService.currentUser {
+                    HStack(spacing: 12) {
+                        Text(user.name)
+                            .foregroundStyle(.secondary)
+
+                        Button("Logout") {
+                            authService.logout()
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.red)
+                    }
+                }
+
+                Spacer()
+                    .frame(width: 20)
+
                 Circle()
                     .fill(apiStatus == "healthy" ? .green : .red)
                     .frame(width: 12, height: 12)
