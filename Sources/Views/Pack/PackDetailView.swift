@@ -65,7 +65,7 @@ struct PackDetailView: View {
                 } else if selectedTab == "dog" {
                     dogView
                 } else {
-                    activitiesPlaceholder
+                    ActivityDashboardView(packId: packId)
                 }
             } else {
                 ContentUnavailableView(
@@ -167,29 +167,6 @@ struct PackDetailView: View {
         }
     }
 
-    // MARK: - Activities Placeholder
-    @ViewBuilder
-    private var activitiesPlaceholder: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            Image(systemName: "list.bullet.clipboard")
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
-
-            Text("Activities Coming Soon")
-                .font(.title2.bold())
-
-            Text("Activity logging will be available in the next phase")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Spacer()
-        }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
 }
 
 #Preview {
